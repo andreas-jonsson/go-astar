@@ -4,17 +4,23 @@ import "container/heap"
 
 // astar is an A* pathfinding implementation.
 
+// Optional user context.
+type Context interface {
+	PathNeighbors(node Pather, buf []Pather) []Pather
+	PathNeighborCost(node Pather, to Pather) float64
+}
+
 // Pather is an interface which allows A* searching on arbitrary objects which
 // can represent a weighted graph.
 type Pather interface {
 	// PathNeighbors returns the direct neighboring nodes of this node which
 	// can be pathed to.
-	PathNeighbors(ctx interface{}, neighbors []Pather) []Pather
+	PathNeighbors(ctx Context, buf []Pather) []Pather
 	// PathNeighbourCost calculates the exact movement cost to neighbor nodes.
-	PathNeighborCost(ctx interface{}, to Pather) float64
+	PathNeighborCost(ctx Context, to Pather) float64
 	// PathEstimatedCost is a heuristic method for estimating movement costs
 	// between non-adjacent nodes.
-	PathEstimatedCost(ctx interface{}, to Pather) float64
+	PathEstimatedCost(ctx Context, to Pather) float64
 }
 
 // node is a wrapper to store A* data for a Pather node.
@@ -56,12 +62,12 @@ type Search struct {
 	tmp      []Pather
 	fromNode *node
 	to       Pather
-	ctx      interface{}
+	ctx      Context
 	res      result
 }
 
 // NewSearch creates a new search object.
-func NewSearch(ctx interface{}, from, to Pather) *Search {
+func NewSearch(ctx Context, from, to Pather) *Search {
 	s := &Search{}
 	s.nm = nodeMap{}
 	s.nq = &priorityQueue{}
@@ -78,7 +84,7 @@ func NewSearch(ctx interface{}, from, to Pather) *Search {
 // PathWithContext calculates a short path and the distance between the two Pather nodes.
 // ctx is user optional data.
 // If no path is found, found will be false.
-func PathWithContext(ctx interface{}, from, to Pather) (path []Pather, distance float64, found bool) {
+func PathWithContext(ctx Context, from, to Pather) (path []Pather, distance float64, found bool) {
 	s := NewSearch(ctx, from, to)
 	for !s.Step() {
 	}
@@ -150,6 +156,6 @@ func (s *Search) Step() bool {
 }
 
 // Context returns the users search context.
-func (s *Search) Context() interface{} {
+func (s *Search) Context() Context {
 	return s.ctx
 }

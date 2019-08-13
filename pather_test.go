@@ -70,7 +70,7 @@ type Tile struct {
 
 // PathNeighbors returns the neighbors of the tile, excluding blockers and
 // tiles off the edge of the board.
-func (t *Tile) PathNeighbors(_ interface{}, neighbors []Pather) []Pather {
+func (t *Tile) PathNeighbors(_ Context, neighbors []Pather) []Pather {
 	for _, offset := range [][]int{
 		{-1, 0},
 		{1, 0},
@@ -86,14 +86,14 @@ func (t *Tile) PathNeighbors(_ interface{}, neighbors []Pather) []Pather {
 }
 
 // PathNeighborCost returns the movement cost of the directly neighboring tile.
-func (t *Tile) PathNeighborCost(_ interface{}, to Pather) float64 {
+func (t *Tile) PathNeighborCost(_ Context, to Pather) float64 {
 	toT := to.(*Tile)
 	return KindCosts[toT.Kind]
 }
 
 // PathEstimatedCost uses Manhattan distance to estimate orthogonal distance
 // between non-adjacent nodes.
-func (t *Tile) PathEstimatedCost(_ interface{}, to Pather) float64 {
+func (t *Tile) PathEstimatedCost(_ Context, to Pather) float64 {
 	toT := to.(*Tile)
 	absX := toT.X - t.X
 	if absX < 0 {
