@@ -1,5 +1,7 @@
 package astar
 
+import "github.com/andreas-jonsson/fix16"
+
 // goreland_example.go implements implements Pather for
 // the sake of testing.  This functionality forms the back end for
 // goreland_test.go, and serves as an example for how to use A* for a graph.
@@ -28,7 +30,7 @@ type Goreland struct {
 type Tube struct {
 	from *Truck
 	to   *Truck
-	Cost float64
+	Cost fix16.T
 }
 
 // A Truck is a Truck in a grid which implements Grapher.
@@ -52,19 +54,19 @@ func (t *Truck) PathNeighbors(_ Context, neighbors []Pather) []Pather {
 }
 
 // PathNeighborCost returns the cost of the tube leading to Truck.
-func (t *Truck) PathNeighborCost(_ Context, to Pather) float64 {
+func (t *Truck) PathNeighborCost(_ Context, to Pather) fix16.T {
 
 	for _, tube_element := range (t).out_to {
 		if Pather((tube_element.to)) == to {
 			return tube_element.Cost
 		}
 	}
-	return 10000000
+	return fix16.Int(10000000)
 }
 
 // PathEstimatedCost uses Manhattan distance to estimate orthogonal distance
 // between non-adjacent nodes.
-func (t *Truck) PathEstimatedCost(_ Context, to Pather) float64 {
+func (t *Truck) PathEstimatedCost(_ Context, to Pather) fix16.T {
 
 	toT := to.(*Truck)
 	absX := toT.X - t.X
@@ -75,7 +77,7 @@ func (t *Truck) PathEstimatedCost(_ Context, to Pather) float64 {
 	if absY < 0 {
 		absY = -absY
 	}
-	r := float64(absX + absY)
+	r := fix16.Int(absX + absY)
 
 	return r
 }

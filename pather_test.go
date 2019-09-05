@@ -7,6 +7,8 @@ package astar
 import (
 	"fmt"
 	"strings"
+
+	"github.com/andreas-jonsson/fix16"
 )
 
 // Kind* constants refer to tile kinds for input and output.
@@ -50,12 +52,12 @@ var RuneKinds = map[rune]int{
 }
 
 // KindCosts map tile kinds to movement costs.
-var KindCosts = map[int]float64{
-	KindPlain:    1.0,
-	KindFrom:     1.0,
-	KindTo:       1.0,
-	KindRiver:    2.0,
-	KindMountain: 3.0,
+var KindCosts = map[int]fix16.T{
+	KindPlain:    fix16.Float64(1.0),
+	KindFrom:     fix16.Float64(1.0),
+	KindTo:       fix16.Float64(1.0),
+	KindRiver:    fix16.Float64(2.0),
+	KindMountain: fix16.Float64(3.0),
 }
 
 // A Tile is a tile in a grid which implements Pather.
@@ -86,14 +88,14 @@ func (t *Tile) PathNeighbors(_ Context, neighbors []Pather) []Pather {
 }
 
 // PathNeighborCost returns the movement cost of the directly neighboring tile.
-func (t *Tile) PathNeighborCost(_ Context, to Pather) float64 {
+func (t *Tile) PathNeighborCost(_ Context, to Pather) fix16.T {
 	toT := to.(*Tile)
 	return KindCosts[toT.Kind]
 }
 
 // PathEstimatedCost uses Manhattan distance to estimate orthogonal distance
 // between non-adjacent nodes.
-func (t *Tile) PathEstimatedCost(_ Context, to Pather) float64 {
+func (t *Tile) PathEstimatedCost(_ Context, to Pather) fix16.T {
 	toT := to.(*Tile)
 	absX := toT.X - t.X
 	if absX < 0 {
@@ -103,7 +105,7 @@ func (t *Tile) PathEstimatedCost(_ Context, to Pather) float64 {
 	if absY < 0 {
 		absY = -absY
 	}
-	return float64(absX + absY)
+	return fix16.Int(absX + absY)
 }
 
 // World is a two dimensional map of Tiles.

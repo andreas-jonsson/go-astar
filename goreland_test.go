@@ -2,6 +2,8 @@ package astar
 
 import (
 	"testing"
+
+	"github.com/andreas-jonsson/fix16"
 )
 
 func AddTruck(x int, y int, label string) *Truck {
@@ -12,7 +14,7 @@ func AddTruck(x int, y int, label string) *Truck {
 	return t1
 }
 
-func AddTube(t1, t2 *Truck, cost float64) *Tube {
+func AddTube(t1, t2 *Truck, cost fix16.T) *Tube {
 	tube1 := new(Tube)
 	tube1.Cost = cost
 	tube1.from = t1
@@ -47,7 +49,7 @@ func AddTube(t1, t2 *Truck, cost float64) *Tube {
 //    Solver should avoid the plugged tube.
 //    Expect solution Start,Middle,End  Total cost: 2.0
 
-func createGorelandGraphPath_Diagonal(t *testing.T, diagonal_cost float64, expectedDist float64) {
+func createGorelandGraphPath_Diagonal(t *testing.T, diagonal_cost, expectedDist fix16.T) {
 
 	world := new(Goreland)
 
@@ -56,8 +58,8 @@ func createGorelandGraphPath_Diagonal(t *testing.T, diagonal_cost float64, expec
 	tr_end := AddTruck(1, 1, "End")
 
 	AddTube(tr_start, tr_end, diagonal_cost)
-	AddTube(tr_start, tr_mid, 1)
-	AddTube(tr_mid, tr_end, 1)
+	AddTube(tr_start, tr_mid, fix16.One)
+	AddTube(tr_mid, tr_end, fix16.One)
 
 	t.Logf("Goreland.  Diagonal cost: %v\n\n", diagonal_cost)
 
@@ -68,7 +70,7 @@ func createGorelandGraphPath_Diagonal(t *testing.T, diagonal_cost float64, expec
 	} else {
 		t.Logf("Resulting path\n%s", world.RenderPath(p))
 	}
-	if !found && expectedDist >= 0 {
+	if !found && !expectedDist.Negative() {
 		t.Fatal("Could not find a path")
 	}
 	if found && dist != expectedDist {
@@ -77,8 +79,8 @@ func createGorelandGraphPath_Diagonal(t *testing.T, diagonal_cost float64, expec
 }
 
 func TestGraphPaths_ShortDiagonal(t *testing.T) {
-	createGorelandGraphPath_Diagonal(t, 1.9, 1.9)
+	createGorelandGraphPath_Diagonal(t, fix16.Float64(1.9), fix16.Float64(1.9))
 }
 func TestGraphPaths_LongDiagonal(t *testing.T) {
-	createGorelandGraphPath_Diagonal(t, 10000, 2.0)
+	createGorelandGraphPath_Diagonal(t, fix16.Float64(10000), fix16.Float64(2.0))
 }

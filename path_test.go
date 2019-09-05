@@ -4,12 +4,16 @@ package astar
 // implementation.  testPath is used to check the calculated path distance is
 // what we're expecting.
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/andreas-jonsson/fix16"
+)
 
 // testPath takes a string encoded world, decodes it, calculates a path and
 // checks the expected distance matches.  An expectedDist of -1 expects that no
 // path will be found.
-func testPath(worldInput string, t *testing.T, expectedDist float64) {
+func testPath(worldInput string, t *testing.T, expectedDist fix16.T) {
 	world := ParseWorld(worldInput)
 	t.Logf("Input world\n%s", world.RenderPath([]Pather{}))
 	p, dist, found := Path(world.From(), world.To())
@@ -18,7 +22,7 @@ func testPath(worldInput string, t *testing.T, expectedDist float64) {
 	} else {
 		t.Logf("Resulting path\n%s", world.RenderPath(p))
 	}
-	if !found && expectedDist >= 0 {
+	if !found && !expectedDist.Negative() {
 		t.Fatal("Could not find a path")
 	}
 	if found && dist != expectedDist {
@@ -35,7 +39,7 @@ func TestStraightLine(t *testing.T) {
 .F........T.
 ....MMM.....
 ............
-`, t, 9)
+`, t, fix16.Int(9))
 }
 
 // TestPathAroundMountain checks that having a round mountain in the path
@@ -47,7 +51,7 @@ func TestPathAroundMountain(t *testing.T) {
 .F..MMMM..T.
 ....MMM.....
 ............
-`, t, 13)
+`, t, fix16.Int(13))
 }
 
 // TestBlocked checks that no path is returned when there is no possible path.
@@ -58,7 +62,7 @@ func TestBlocked(t *testing.T) {
 .F.......XTX
 .........XXX
 ............
-`, t, -1)
+`, t, fix16.Int(-1))
 }
 
 // TestMaze checks that paths can double back on themselves to reach the goal.
@@ -69,7 +73,7 @@ FX.X........
 .X.X.X....X.
 ...X.X.XXXXX
 .XX..X.....T
-`, t, 27)
+`, t, fix16.Int(27))
 }
 
 // TestMountainClimber checks that a path will choose to go over a mountain,
@@ -82,7 +86,7 @@ func TestMountainClimber(t *testing.T) {
 ....MMMM..T.
 ....MMM.....
 ............
-`, t, 12)
+`, t, fix16.Int(12))
 }
 
 // TestRiverSwimmer checks that the path will prefer to cross a river, which
@@ -95,7 +99,7 @@ func TestRiverSwimmer(t *testing.T) {
 .F...X...T..
 .....M......
 .....M......
-`, t, 11)
+`, t, fix16.Int(11))
 }
 
 func BenchmarkLarge(b *testing.B) {

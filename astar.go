@@ -1,13 +1,17 @@
 package astar
 
-import "container/heap"
+import (
+	"container/heap"
+
+	"github.com/andreas-jonsson/fix16"
+)
 
 // astar is an A* pathfinding implementation.
 
 // Optional user context.
 type Context interface {
 	PathNeighbors(node Pather, buf []Pather) []Pather
-	PathNeighborCost(node Pather, to Pather) float64
+	PathNeighborCost(node Pather, to Pather) fix16.T
 }
 
 // Pather is an interface which allows A* searching on arbitrary objects which
@@ -17,17 +21,17 @@ type Pather interface {
 	// can be pathed to.
 	PathNeighbors(ctx Context, buf []Pather) []Pather
 	// PathNeighbourCost calculates the exact movement cost to neighbor nodes.
-	PathNeighborCost(ctx Context, to Pather) float64
+	PathNeighborCost(ctx Context, to Pather) fix16.T
 	// PathEstimatedCost is a heuristic method for estimating movement costs
 	// between non-adjacent nodes.
-	PathEstimatedCost(ctx Context, to Pather) float64
+	PathEstimatedCost(ctx Context, to Pather) fix16.T
 }
 
 // node is a wrapper to store A* data for a Pather node.
 type node struct {
 	pather Pather
-	cost   float64
-	rank   float64
+	cost   fix16.T
+	rank   fix16.T
 	parent *node
 	open   bool
 	closed bool
@@ -51,7 +55,7 @@ func (nm nodeMap) get(p Pather) *node {
 
 type result struct {
 	path        []Pather
-	distance    float64
+	distance    fix16.T
 	found, done bool
 }
 
@@ -84,7 +88,7 @@ func NewSearch(ctx Context, from, to Pather) *Search {
 // PathWithContext calculates a short path and the distance between the two Pather nodes.
 // ctx is user optional data.
 // If no path is found, found will be false.
-func PathWithContext(ctx Context, from, to Pather) (path []Pather, distance float64, found bool) {
+func PathWithContext(ctx Context, from, to Pather) (path []Pather, distance fix16.T, found bool) {
 	s := NewSearch(ctx, from, to)
 	for !s.Step() {
 	}
@@ -92,12 +96,12 @@ func PathWithContext(ctx Context, from, to Pather) (path []Pather, distance floa
 }
 
 // Path calculates a short path and the distance between the two Pather nodes.
-func Path(from, to Pather) (path []Pather, distance float64, found bool) {
+func Path(from, to Pather) (path []Pather, distance fix16.T, found bool) {
 	return PathWithContext(nil, from, to)
 }
 
 // Result retrives the final search result.
-func (s *Search) Result() (path []Pather, distance float64, found bool) {
+func (s *Search) Result() (path []Pather, distance fix16.T, found bool) {
 	for !s.Step() {
 	}
 	return s.res.path, s.res.distance, s.res.found
@@ -134,9 +138,9 @@ func (s *Search) Step() bool {
 	}
 
 	for _, neighbor := range current.pather.PathNeighbors(s.ctx, s.tmp[:0]) {
-		cost := current.cost + current.pather.PathNeighborCost(s.ctx, neighbor)
+		cost := current.cost.Add(current.pather.PathNeighborCost(s.ctx, neighbor))
 		neighborNode := s.nm.get(neighbor)
-		if cost < neighborNode.cost {
+		if cost.Less(neighborNode.cost) {
 			if neighborNode.open {
 				heap.Remove(s.nq, neighborNode.index)
 			}
@@ -146,7 +150,7 @@ func (s *Search) Step() bool {
 		if !neighborNode.open && !neighborNode.closed {
 			neighborNode.cost = cost
 			neighborNode.open = true
-			neighborNode.rank = cost + neighbor.PathEstimatedCost(s.ctx, s.to)
+			neighborNode.rank = cost.Add(neighbor.PathEstimatedCost(s.ctx, s.to))
 			neighborNode.parent = current
 			heap.Push(s.nq, neighborNode)
 		}

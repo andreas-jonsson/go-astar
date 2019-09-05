@@ -1,7 +1,7 @@
 go-astar
 ========
 
-This is a modified version of Michael Alexander's [go-astar](https://github.com/beefsack/go-astar) with some optimizations and flexibility fixes.
+This is a modified version of Michael Alexander's [go-astar](https://github.com/beefsack/go-astar) that uses fixed point math.
 
 Authors
 -------
